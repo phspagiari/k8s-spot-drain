@@ -15,6 +15,7 @@ spec:
       # serviceAccountName: k8s-spot-drain
       nodeSelector:
         # Add your special label to run this DS only in spot nodes
+        label.of.your.nodes/spot: "true"
       containers:
       - name: k8s-spot-drain
         image: spagiari/k8s-spot-drain:latest
