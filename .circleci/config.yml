@@ -24,12 +24,12 @@ jobs:
     <<: *defaults
     steps:
        - checkout
-       - run: docker build -t spagiari/k8s-spot-drain:build .
+       - run: docker build -t vivareal/k8s-spot-drain:build .
        - run:
           name: Docker save
           command: |
             mkdir -p docker-cache
-            docker save -o docker-cache/k8s-spot-drain-build.tar spagiari/k8s-spot-drain:build
+            docker save -o docker-cache/k8s-spot-drain-build.tar vivareal/k8s-spot-drain:build
        - save_cache:
           key: k8s-spot-drain-{{ .Environment.CIRCLE_SHA1 }}
           paths:
@@ -47,10 +47,10 @@ jobs:
           name: Load and tag image
           command: |
             docker load < docker-cache/k8s-spot-drain-build.tar
-            docker tag spagiari/k8s-spot-drain:build spagiari/k8s-spot-drain:master
+            docker tag vivareal/k8s-spot-drain:build vivareal/k8s-spot-drain:master
        - run:
           name: Publish Image
-          command: docker push spagiari/k8s-spot-drain:master
+          command: docker push vivareal/k8s-spot-drain:master
 
   publish_tag:
     <<: *defaults
@@ -66,8 +66,8 @@ jobs:
        - run:
           name: Tag and publish image
           command: |
-            docker tag spagiari/k8s-spot-drain:build spagiari/k8s-spot-drain:${CIRCLE_TAG}
-            docker push spagiari/k8s-spot-drain:${CIRCLE_TAG}
+            docker tag vivareal/k8s-spot-drain:build vivareal/k8s-spot-drain:${CIRCLE_TAG}
+            docker push vivareal/k8s-spot-drain:${CIRCLE_TAG}
 
 workflows:
   version: 2
