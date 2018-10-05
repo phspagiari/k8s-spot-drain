@@ -11,8 +11,7 @@ spec:
       labels:
         app: k8s-spot-drain
     spec:
-      # If using SA uncomment this. You can also use EnvVar.
-      # serviceAccountName: k8s-spot-drain
+      serviceAccountName: k8s-spot-drain
       nodeSelector:
         # Add your special label to run this DS only in spot nodes
         label.of.your.nodes/spot: "true"
