@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: k8s-spot-drain
+  name: k8s-spot-drain
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        app: k8s-spot-drain
+    spec:
+      # If using SA uncomment this. You can also use EnvVar.
+      # serviceAccountName: k8s-spot-drain
+      nodeSelector:
+        # Add your special label to run this DS only in spot nodes
+      containers:
+      - name: k8s-spot-drain
+        image: spagiari/k8s-spot-drain:latest
+        imagePullPolicy: Always
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: DEBUG
+          value: "false"
