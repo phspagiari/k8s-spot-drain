@@ -1,0 +1,99 @@
+version: 2
+defaults: &defaults
+  machine:
+    image: circleci/classic:latest
+  environment:
+    KUBE_VERSION: 1.11.0
+
+jobs:
+  test_kubefiles:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install kubeval
+          command: |
+            wget https://github.com/garethr/kubeval/releases/download/0.7.3/kubeval-linux-amd64.tar.gz
+            tar xf kubeval-linux-amd64.tar.gz
+      - run:
+          name: Run tests deploy dir
+          command: |
+            find deploy/ -name "*.yaml" | xargs ./kubeval --kubernetes-version ${KUBE_VERSION}
+
+  build_image:
+    <<: *defaults
+    steps:
+       - checkout
+       - run: docker build -t spagiari/k8s-spot-drain:build .
+       - run:
+          name: Docker save
+          command: |
+            mkdir -p docker-cache
+            docker save -o docker-cache/k8s-spot-drain-build.tar spagiari/k8s-spot-drain:build
+       - save_cache:
+          key: k8s-spot-drain-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - docker-cache
+
+  publish_master:
+    <<: *defaults
+    steps:
+       - checkout
+       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+       - restore_cache:
+          keys:
+             - k8s-spot-drain-{{ .Environment.CIRCLE_SHA1 }}
+       - run:
+          name: Load and tag image
+          command: |
+            docker load < docker-cache/k8s-spot-drain-build.tar
+            docker tag spagiari/k8s-spot-drain:build spagiari/k8s-spot-drain:master
+       - run:
+          name: Publish Image
+          command: docker push spagiari/k8s-spot-drain:master
+
+  publish_tag:
+    <<: *defaults
+    steps:
+       - checkout
+       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+       - restore_cache:
+          keys:
+             - k8s-spot-drain-{{ .Environment.CIRCLE_SHA1 }}
+       - run:
+          name: Load Image
+          command: docker load < docker-cache/k8s-spot-drain-build.tar
+       - run:
+          name: Tag and publish image
+          command: |
+            docker tag spagiari/k8s-spot-drain:build spagiari/k8s-spot-drain:${CIRCLE_TAG}
+            docker push spagiari/k8s-spot-drain:${CIRCLE_TAG}
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - test_kubefiles:
+          filters:
+            tags:
+              only: /^[0-9]+\.[0-9]+\.[0-9]+-(logstash)[0-9]+\.[0-9]+\.[0-9]$/
+      - build_image:
+          filters:
+            tags:
+              only: /^[0-9]+\.[0-9]+\.[0-9]+-(logstash)[0-9]+\.[0-9]+\.[0-9]$/
+      - publish_master:
+          requires:
+            - test_kubefiles
+            - build_image
+          filters:
+            branches:
+              only: master
+      - publish_tag:
+          requires:
+            - test_kubefiles
+            - build_image
+          filters:
+            tags:
+              only: /^[0-9]+\.[0-9]+\.[0-9]+-(logstash)[0-9]+\.[0-9]+\.[0-9]$/
+            branches:
+              ignore: /.*/
