@@ -1,10 +1,10 @@
 #!/bin/bash
 trap "exit 0" SIGINT SIGTERM
 
-
 DEBUG=${DEBUG:-false}
 TERMINATION_ENDPOINT="http://169.254.169.254/latest/meta-data/spot/termination-time"
 
+wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl && chmod +x ./kubectl
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Starting on node ${MY_NODE_NAME}"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: polling AWS meta-data every 5 seconds"
@@ -14,7 +14,7 @@ while true; do
   if [[ ${status_code} == "200" ]]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Initiating node drain. Received termination signal from AWS"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Draining ${MY_NODE_NAME}"
-    /app/kubectl drain "${MY_NODE_NAME}" --force --delete-local-data --grace-period=110 --ignore-daemonsets
+    ./kubectl drain "${MY_NODE_NAME}" --force --delete-local-data --grace-period=110 --ignore-daemonsets
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: Done"
     break
   else

@@ -26,3 +26,5 @@ spec:
               fieldPath: spec.nodeName
         - name: DEBUG
           value: "false"
+        - name: KUBECTL_VERSION
+          value: "1.17.11"
