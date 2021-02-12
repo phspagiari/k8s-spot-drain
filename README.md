@@ -12,3 +12,7 @@ The idea behind this simple script is to drain gracefully the node before AWS ab
 ## Considerations
  - You can change the `DEBUG` env to **true** if the *radio silence* of the script is annoying you :)
  - **Don't forget to update the nodeSelector with your spot node label**
+
+## License
+
+See the [LICENSE](LICENSE.md) file for license rights and limitations (MIT).
