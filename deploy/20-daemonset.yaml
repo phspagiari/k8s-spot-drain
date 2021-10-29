@@ -20,7 +20,7 @@ spec:
         image: spagiari/k8s-spot-drain:latest
         imagePullPolicy: Always
         env:
-        - name: NODE_NAME
+        - name: MY_NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
